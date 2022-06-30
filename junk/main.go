@@ -1,34 +1,14 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-const (
-	Zero = `........
-.111111.
-.111111.
-.11..11.
-.11..11.
-.11..11.
-.11..11.
-.11..11.
-.11..11.
-.111111.
-.111111.
-........`
-)
-
-type Point struct {
-	x, y int
-}
-
-type Circle struct {
-	Point
-	radius int
+type node struct {
+	name  string
+	inner *node
 }
 
 func main() {
-	str := []rune("jopa")
-	fmt.Printf("%c", str[0])
+	var item = &node{}
+	item.name = "lol"
+	fmt.Println(item.name)
 }
