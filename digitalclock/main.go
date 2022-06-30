@@ -53,7 +53,6 @@ func genImageFromTime(tm time.Time, k int) (img *image.RGBA) {
 	for _, lit := range stringTime {
 		currLit, _ := GetCurrentLiteralPerf(lit)
 		currWidth := strings.Index(string(currLit), "\n")
-		// fmt.Println("runes len: ", len(currLit), " ", height, " ", currWidth)
 		for i := 0; i < height; i++ {
 			for j := 0; j < currWidth; j++ {
 				if currLit[i*(currWidth+1)+j] == '1' {
