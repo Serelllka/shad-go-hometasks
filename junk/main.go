@@ -1,14 +1,13 @@
 package main
 
-import "fmt"
+type myInt int64
 
-type node struct {
-	name  string
-	inner *node
+func (m myInt) Jopa() {
+
 }
 
 func main() {
-	var item = &node{}
-	item.name = "lol"
-	fmt.Println(item.name)
+	var x myInt
+	x = 7
+	x.Jopa()
 }
