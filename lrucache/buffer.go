@@ -3,7 +3,7 @@ package lrucache
 type CircularBuffer struct {
 	cap               int
 	size              int
-	buffer            []string
+	buffer            []int
 	firstInd, lastInd int
 }
 
@@ -11,7 +11,7 @@ func NewBuffer(cap int) (cb CircularBuffer) {
 	return CircularBuffer{
 		cap:      cap,
 		size:     0,
-		buffer:   make([]string, cap),
+		buffer:   make([]int, cap),
 		firstInd: 0,
 		lastInd:  0,
 	}
@@ -33,40 +33,53 @@ func (buf *CircularBuffer) prevIndex(index int) (newIndex int) {
 	return index
 }
 
-func (buf *CircularBuffer) Append(item string) {
-	buf.buffer[buf.lastInd] = item
-	if buf.size < buf.cap {
-		buf.size += 1
-	} else {
-		buf.firstInd = buf.nextIndex(buf.firstInd)
+func (buf *CircularBuffer) Append(items ...int) {
+	if buf.cap == 0 {
+		return
 	}
-	buf.lastInd = buf.nextIndex(buf.lastInd)
+
+	for _, item := range items {
+		buf.buffer[buf.lastInd] = item
+		if buf.size < buf.cap {
+			buf.size += 1
+		} else {
+			buf.firstInd = buf.nextIndex(buf.firstInd)
+		}
+		buf.lastInd = buf.nextIndex(buf.lastInd)
+	}
 }
 
-func (buf *CircularBuffer) Out() (output []string) {
-	output = make([]string, buf.size)
-	index := buf.firstInd
-	for index != buf.lastInd {
-		output = append(output, buf.buffer[index])
-		index = buf.nextIndex(index)
+func (buf *CircularBuffer) Out() (output []int) {
+	output = make([]int, 0, buf.size)
+	for _, item := range buf.linearizeIndices() {
+		output = append(output, buf.buffer[item])
 	}
 	return output
 }
 
-func (buf *CircularBuffer) Front() (item string) {
-	return buf.buffer[buf.prevIndex(buf.lastInd)]
-}
-
-func (buf *CircularBuffer) Back() (item string) {
-	return buf.buffer[buf.firstInd]
-}
-
-func (buf *CircularBuffer) linearizePointers() (output []int) {
-	output = make([]int, buf.size)
-	index := buf.firstInd
-	if buf.size == 0 {
-		return nil
+func (buf *CircularBuffer) Front() (item int, out bool) {
+	if len(buf.buffer) == 0 {
+		return 0, false
 	}
+
+	return buf.buffer[buf.prevIndex(buf.lastInd)], true
+}
+
+func (buf *CircularBuffer) Back() (item int, out bool) {
+	if len(buf.buffer) == 0 {
+		return 0, false
+	}
+
+	return buf.buffer[buf.firstInd], true
+}
+
+func (buf *CircularBuffer) linearizeIndices() (output []int) {
+	if len(buf.buffer) == 0 {
+		return []int{}
+	}
+
+	output = make([]int, 0, buf.size)
+	index := buf.firstInd
 
 	if buf.size < buf.cap {
 		for index != buf.lastInd {
