@@ -1,30 +1,36 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"testing/iotest"
+	"sync"
+	"time"
 )
 
-type myInt int64
-
-func (m *myInt) Jopa() {
-	*m = 21
-}
-
-var bufferSize = 1000
+var (
+	mutex sync.RWMutex
+	wg    sync.WaitGroup
+)
 
 func main() {
-	text := make([]byte, bufferSize)
-	read := make([]byte, bufferSize)
+	go func(wg *sync.WaitGroup) {
+		wg.Add(1)
+		mutex.RLock()
+		defer wg.Done()
+		defer mutex.RUnlock()
 
-	buf := bytes.NewBuffer(text)
-	errBuf := iotest.DataErrReader(buf)
+		fmt.Scanln()
+	}(&wg)
 
-	n, err := io.ReadAll(errBuf)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(len(n), " ", len(read))
+	go func(wg *sync.WaitGroup) {
+		time.Sleep(time.Millisecond)
+		wg.Add(1)
+		mutex.RLock()
+		defer wg.Done()
+		defer mutex.RUnlock()
+
+		fmt.Printf("waiting for input...")
+	}(&wg)
+
+	time.Sleep(time.Millisecond)
+	wg.Wait()
 }

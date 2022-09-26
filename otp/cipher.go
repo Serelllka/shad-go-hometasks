@@ -16,22 +16,27 @@ type encryptedWriter struct {
 func (er *encryptedReader) Read(p []byte) (n int, err error) {
 	inp := make([]byte, 1)
 	cipher := make([]byte, 1)
+	var k int
 	for i := 0; i < len(p); i++ {
-		_, err = er.reader.Read(inp)
-
-		if err != nil {
-			if err != io.EOF || i == 0 {
-				return 0, err
+		for k == 0 {
+			k, err = er.cipher.Read(cipher)
+			if err != nil {
+				return i, err
 			}
-			return i, nil
 		}
 
-		_, err = er.cipher.Read(cipher)
-		if err != nil {
-			if err != io.EOF || i == 0 {
-				return 0, err
+		k = 0
+		for k == 0 {
+			k, err = er.reader.Read(inp)
+
+			if err != nil {
+				if err == io.EOF {
+					p[i] = inp[0] ^ cipher[0]
+					return i + 1, err
+				} else {
+					return i, err
+				}
 			}
-			return i, nil
 		}
 
 		p[i] = inp[0] ^ cipher[0]
